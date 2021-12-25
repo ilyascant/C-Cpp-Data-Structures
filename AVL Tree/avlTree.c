@@ -91,7 +91,7 @@ struct Node *insert(struct Node *node, int data)
         return leftRotate(node);
     else if (balance > 1 && data > node->left->data)
     {
-        node->left = rightRotate(node->left);
+        node->left = leftRotate(node->left);
         return rightRotate(node);
     }
     else if (balance < -1 && data < node->right->data)
