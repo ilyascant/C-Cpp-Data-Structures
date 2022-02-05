@@ -56,18 +56,6 @@ void addEdge(Graph* graph, int src, int dest) {
         }
         check->next = newNode;
     }
-
-    newNode = newAdjListNode(src);
-    if (graph->array[dest].head == NULL) {
-        graph->array[dest].head = newNode;
-
-    } else {
-        check = graph->array[dest].head;
-        while (check->next != NULL) {
-            check = check->next;
-        }
-        check->next = newNode;
-    }
 }
 
 void printGraph(Graph* graph) {
@@ -88,10 +76,12 @@ int main() {
     addEdge(graph, 0, 1);
     addEdge(graph, 0, 4);
     addEdge(graph, 1, 2);
-    addEdge(graph, 1, 3);
     addEdge(graph, 1, 4);
     addEdge(graph, 2, 3);
+    addEdge(graph, 3, 1);
+    addEdge(graph, 3, 0);
     addEdge(graph, 3, 4);
+    addEdge(graph, 4, 2);
 
     printGraph(graph);
 
