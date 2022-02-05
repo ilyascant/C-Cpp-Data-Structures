@@ -3,48 +3,42 @@
 
 #define V 5
 
-typedef struct AdjListNode {
-    int dest;
-    struct AdjListNode* next;
-} AdjListNode;
+typedef struct Node {
+    int des;
+    struct Node* next;
+} Node;
 
-typedef struct AdjList {
-    struct AdjListNode* head;
-} AdjList;
+typedef struct NodeHead {
+    struct Node* head;
+} NodeHead;
 
 typedef struct Graph {
-    int v;
-    struct AdjList* array;
+    struct NodeHead* array;
 } Graph;
 
-struct AdjListNode* newAdjListNode(int dest) {
-    AdjListNode* newNode = (AdjListNode*)malloc(sizeof(AdjListNode));
+struct Node* createNode(int des) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
 
-    newNode->dest = dest;
+    newNode->des = des;
     newNode->next = NULL;
 
     return newNode;
-}
+};
 
 struct Graph* createGraph(int v) {
-    Graph* graph = (Graph*)malloc(sizeof(Graph));
+    Graph* newGraph = (Graph*)malloc(sizeof(Graph));
+    newGraph->array = (NodeHead*)malloc(v * sizeof(NodeHead));
 
-    graph->v = v;
-
-    graph->array = (AdjList*)malloc(v * sizeof(AdjList));
-
-    int i;
-
-    for (i = 0; i < v; i++) {
-        graph->array[i].head = NULL;
+    for (int i = 0; i < v; i++) {
+        newGraph->array[i].head = NULL;
     }
 
-    return graph;
+    return newGraph;
 }
 
-void addEdge(Graph* graph, int src, int dest) {
-    AdjListNode* check = NULL;
-    AdjListNode* newNode = newAdjListNode(dest);
+void addEdge(Graph* graph, int src, int des) {
+    Node* check = NULL;
+    Node* newNode = createNode(des);
 
     if (graph->array[src].head == NULL) {
         graph->array[src].head = newNode;
@@ -57,12 +51,12 @@ void addEdge(Graph* graph, int src, int dest) {
         check->next = newNode;
     }
 
-    newNode = newAdjListNode(src);
-    if (graph->array[dest].head == NULL) {
-        graph->array[dest].head = newNode;
+    newNode = createNode(src);
+    if (graph->array[des].head == NULL) {
+        graph->array[des].head = newNode;
 
     } else {
-        check = graph->array[dest].head;
+        check = graph->array[des].head;
         while (check->next != NULL) {
             check = check->next;
         }
@@ -71,20 +65,19 @@ void addEdge(Graph* graph, int src, int dest) {
 }
 
 void printGraph(Graph* graph) {
-    int v;
-    for (v = 0; v < graph->v; v++) {
-        AdjListNode* pCrawl = graph->array[v].head;
-        printf("\n Adjacency list of vertex %d\n head ", v);
-        while (pCrawl) {
-            printf("-> %d", pCrawl->dest);
-            pCrawl = pCrawl->next;
+    for (int i = 0; i < V; i++) {
+        Node* start = graph->array[i].head;
+        printf("\n%d: ", i);
+        while (start) {
+            printf("%d-> ", start->des);
+            start = start->next;
         }
-        printf("\n");
     }
+    printf("\n\n");
 }
 
 int main() {
-    Graph* graph = createGraph(V);  // V is defined as 5
+    Graph* graph = createGraph(V);
     addEdge(graph, 0, 1);
     addEdge(graph, 0, 4);
     addEdge(graph, 1, 2);
@@ -92,7 +85,6 @@ int main() {
     addEdge(graph, 1, 4);
     addEdge(graph, 2, 3);
     addEdge(graph, 3, 4);
-
     printGraph(graph);
 
     return 0;
