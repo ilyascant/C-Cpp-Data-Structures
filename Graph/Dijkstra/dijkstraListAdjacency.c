@@ -96,7 +96,7 @@ void dijkstra(Graph* graph, int src) {
     }
     dist[src].weight = 0;
 
-    for (int i = 0; i < V; i++) {
+    for (int i = 0; i < V - 1; i++) {
         int min_index = find_min_index(dist);
         AdjListNode* tmp = dist[min_index].head;
         dist[min_index].isVisited = true;
