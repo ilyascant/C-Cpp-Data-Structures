@@ -1,133 +1,109 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct Node
-{
+#define MAX(x, y) x > y ? x : y
+
+typedef struct Node {
     int data;
-    struct Node *left, *right;
     int height;
-};
+    struct Node *left, *right;
 
-int height(struct Node *node)
-{
-    if (node == NULL)
-        return 0;
-    return node->height;
-}
+} Node;
 
-int max(int a, int b)
-{
-    return (a > b) ? a : b;
-}
-
-struct Node *newNode(int data)
-{
-    struct Node *temp = (struct Node *)malloc(sizeof(struct Node));
-
-    temp->data = data;
-    temp->left = NULL;
-    temp->right = NULL;
-    temp->height = 0;
-
-    return temp;
-}
-
-struct Node *rightRotate(struct Node *node)
-{
-
-    struct Node *temp = node->left;
-    struct Node *T2 = temp->right;
-
-    temp->right = node;
-    node->left = T2;
-
-    node->height = max(height(node->left), height(node->right)) + 1;
-    temp->height = max(height(temp->left), height(temp->right)) + 1;
-
-    return temp;
-}
-
-struct Node *leftRotate(struct Node *node)
-{
-    struct Node *temp = node->right;
-    struct Node *T2 = temp->left;
-
-    temp->left = node;
-    node->right = T2;
-
-    node->height = max(height(node->left), height(node->right)) + 1;
-    temp->height = max(height(temp->left), height(temp->right)) + 1;
-
-    return temp;
-}
-
-int getBalance(struct Node *node)
-{
-    if (node == NULL)
-        return 0;
-    return height(node->left) - height(node->right);
-}
-
-struct Node *insert(struct Node *node, int data)
-{
-
-    if (node == NULL)
-        return newNode(data);
-
-    if (data < node->data)
-        node->left = insert(node->left, data);
-    else if (data > node->data)
-        node->right = insert(node->right, data);
-    else
-        return node;
-
-    node->height = max(height(node->left), height(node->right)) + 1;
-
-    int balance = getBalance(node);
-
-    if (balance > 1 && data < node->left->data)
-        return rightRotate(node);
-    else if (balance < -1 && data > node->right->data)
-        return leftRotate(node);
-    else if (balance > 1 && data > node->left->data)
-    {
-        node->left = leftRotate(node->left);
-        return rightRotate(node);
-    }
-    else if (balance < -1 && data < node->right->data)
-    {
-        node->right = rightRotate(node->right);
-        return leftRotate(node);
-    }
+Node* create_node(int data) {
+    Node* node = (Node*)malloc(sizeof(Node));
+    node->data = data;
+    node->height = 0;
+    node->left = NULL;
+    node->right = NULL;
 
     return node;
 }
 
-void inOrder(struct Node *node)
-{
+int height(Node* node) {
+    if (node == NULL) return 0;
+    return node->height;
+}
 
-    if (node != NULL)
-    {
+int get_balance(Node* node) {
+    if (node == NULL) return 0;
+    return (height(node->left) - height(node->right));
+}
 
+Node* right_rotate(Node* node) {
+    Node* tmp = node->left;
+    Node* T2 = tmp->right;
+
+    tmp->right = node;
+    node->left = T2;
+
+    tmp->height = MAX(height(tmp->left), height(tmp->right)) + 1;
+    node->height = MAX(height(node->left), height(node->right)) + 1;
+
+    return tmp;
+}
+
+Node* left_rotate(Node* node) {
+    Node* tmp = node->right;
+    Node* T2 = tmp->left;
+
+    tmp->left = node;
+    node->right = T2;
+
+    tmp->height = MAX(height(tmp->left), height(tmp->right)) + 1;
+    node->height = MAX(height(node->left), height(node->right)) + 1;
+
+    return tmp;
+}
+
+Node* insert(Node* node, int data) {
+    if (node == NULL) return create_node(data);
+
+    if (data < node->data) {
+        node->left = insert(node->left, data);
+    } else if (data > node->data) {
+        node->right = insert(node->right, data);
+    } else {
+        return node;
+    }
+
+    node->height = MAX(height(node->left), height(node->right));
+
+    int balance = get_balance(node);
+
+    if (balance > 1 && node->data < node->left->data) {
+        return right_rotate(node);
+    } else if (balance > 1 && node->data > node->left->data) {
+        node->left = left_rotate(node->left);
+        return right_rotate(node);
+    } else if (balance < -1 && node->data > node->right->data) {
+        return left_rotate(node);
+    } else if (balance < -1 && node->data > node->right->data) {
+        node->right = right_rotate(node->right);
+        return left_rotate(node);
+    }
+    return node;
+}
+
+void inOrder(Node* node) {
+    if (node != NULL) {
         inOrder(node->left);
-        printf("%d-> ", node->data);
+        printf("%d ->", node->data);
         inOrder(node->right);
     }
 }
 
-int main()
-{
-    struct Node *root = NULL;
-
+int main(void) {
+    Node* root = NULL;
     root = insert(root, 10);
     root = insert(root, 20);
     root = insert(root, 30);
     root = insert(root, 40);
     root = insert(root, 50);
     root = insert(root, 25);
-
-    printf("inOrder traversal of the constructed AVL"
-           " tree is \n");
+    printf(
+        "inOrder traversal of the constructed AVL"
+        " tree is \n");
     inOrder(root);
-    return 1;
-};
+    return 0;
+}
