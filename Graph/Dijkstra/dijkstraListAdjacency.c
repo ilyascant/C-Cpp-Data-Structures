@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define V 5
 
@@ -8,77 +9,71 @@ typedef struct AdjListNode {
     int dest;
     int weight;
     struct AdjListNode* next;
+
 } AdjListNode;
 
 typedef struct AdjList {
+    int order;
     int weight;
     bool isVisited;
+    struct AdjList* prev;
     struct AdjListNode* head;
 } AdjList;
 
 typedef struct Graph {
     int v;
-    struct AdjList* array;
+    struct AdjList* arr;
+
 } Graph;
 
-struct AdjListNode* newAdjListNode(int dest, int weight) {
-    AdjListNode* newNode = (AdjListNode*)malloc(sizeof(AdjListNode));
-
-    newNode->dest = dest;
-    newNode->weight = weight;
-    newNode->next = NULL;
-
-    return newNode;
+AdjListNode* new_node(int dest, int weight) {
+    AdjListNode* node = (AdjListNode*)malloc(sizeof(AdjListNode));
+    node->dest = dest;
+    node->weight = weight;
+    node->next = NULL;
+    return node;
 }
 
-struct Graph* createGraph(int v) {
+Graph* new_graph(int v) {
     Graph* graph = (Graph*)malloc(sizeof(Graph));
-
     graph->v = v;
+    graph->arr = (AdjList*)malloc(v * sizeof(AdjList));
 
-    graph->array = (AdjList*)malloc(v * sizeof(AdjList));
-
-    int i;
-
-    for (i = 0; i < v; i++) {
-        graph->array[i].head = NULL;
+    for (int i = 0; i < v; i++) {
+        graph->arr[i].head = NULL;
     }
 
     return graph;
 }
 
-void addEdge(Graph* graph, int src, int dest, int weight) {
+void add_edge(Graph* graph, int src, int dest, int weight) {
     AdjListNode* check = NULL;
-    AdjListNode* newNode = newAdjListNode(dest, weight);
 
-    if (graph->array[src].head == NULL) {
-        graph->array[src].head = newNode;
-
+    AdjListNode* node = new_node(dest, weight);
+    if (graph->arr[src].head == NULL) {
+        graph->arr[src].head = node;
     } else {
-        check = graph->array[src].head;
+        check = graph->arr[src].head;
         while (check->next != NULL) {
             check = check->next;
         }
-        check->next = newNode;
+        check->next = node;
     }
 
-    newNode = newAdjListNode(src, weight);
-    if (graph->array[dest].head == NULL) {
-        graph->array[dest].head = newNode;
-
+    node = new_node(src, weight);
+    if (graph->arr[dest].head == NULL) {
+        graph->arr[dest].head = node;
     } else {
-        check = graph->array[dest].head;
-        while (check->next != NULL) {
+        check = graph->arr[dest].head;
+        while (check->next) {
             check = check->next;
         }
-        check->next = newNode;
+        check->next = node;
     }
 }
-
-int find_min_index(AdjList* dist) {
+int find_min_index(AdjList* dist, int v) {
     int min = INT_MAX, min_index;
-
-    for (int i = 0; i < V; i++) {
+    for (int i = 0; i < v; i++) {
         if (!dist[i].isVisited && dist[i].weight <= min) {
             min = dist[i].weight;
             min_index = i;
@@ -87,61 +82,87 @@ int find_min_index(AdjList* dist) {
     return min_index;
 }
 
-void dijkstra(Graph* graph, int src) {
-    AdjList* dist = (AdjList*)malloc(V * sizeof(AdjList));
-    for (int i = 0; i < V; i++) {
-        dist[i] = graph->array[i];
-        dist[i].weight = INT_MAX;
-        dist[i].isVisited = false;
-    }
-    dist[src].weight = 0;
-
-    for (int i = 0; i < V - 1; i++) {
-        int min_index = find_min_index(dist);
-        AdjListNode* tmp = dist[min_index].head;
-        dist[min_index].isVisited = true;
-        for (int j = 0; j < V; j++) {
-            if (tmp) {
-                if (j == tmp->dest && !dist[j].isVisited && dist[min_index].weight != INT_MAX && dist[j].weight > dist[min_index].weight + tmp->weight) {
-                    dist[j].weight = dist[min_index].weight + tmp->weight;
-                }
-                if (j == tmp->dest) tmp = tmp->next;
-
-            } else {
-                continue;
-            }
+void print_dijkstra(AdjList* dist, int src, int v) {
+    int i = 0;
+    while (i < v) {
+        printf("Shortest Path From Src ( %d ) To Dest ( %d ): ", src, i);
+        printf("%d\n", dist[i].weight);
+        AdjList* tmp = dist[i].prev;
+        printf("PATH: %d ", i);
+        while (tmp != NULL) {
+            printf("--> %d ", tmp->order);
+            tmp = tmp->prev;
         }
+        printf("\n");
+        i++;
     }
-    for (int i = 0; i < V; i++) {
-        printf("From Note ( %d ) to Note ( %d ), Shortest Path's Weight is-> %d\n", src, i, dist[i].weight);
-    }
+    printf("\n");
 }
 
 void printGraph(Graph* graph) {
     int v;
     for (v = 0; v < graph->v; v++) {
-        AdjListNode* pCrawl = graph->array[v].head;
-        printf("\n Adjacency list of vertex %d\n head ", v);
+        AdjListNode* pCrawl = graph->arr[v].head;
+        printf("\nAdjacency list of vertex %d\nhead ", v);
         while (pCrawl) {
             printf("-> %d (%d) ", pCrawl->dest, pCrawl->weight);
             pCrawl = pCrawl->next;
         }
-        printf("\n");
     }
 }
 
-int main() {
-    Graph* graph = createGraph(V);  // V is defined as 5
-    addEdge(graph, 0, 1, 6);
-    addEdge(graph, 0, 3, 1);
-    addEdge(graph, 1, 2, 5);
-    addEdge(graph, 1, 3, 2);
-    addEdge(graph, 1, 4, 2);
-    addEdge(graph, 2, 4, 5);
-    addEdge(graph, 3, 4, 1);
+void dijkstra(Graph* graph, int src) {
+    AdjList* dist = (AdjList*)malloc(graph->v * sizeof(AdjList));
 
-    // printGraph(graph);
+    for (int i = 0; i < graph->v; i++) {
+        dist[i] = graph->arr[i];
+        dist[i].weight = INT_MAX;
+        dist[i].isVisited = false;
+        dist[i].prev = NULL;
+    }
+
+    dist[src].weight = 0;
+
+    for (int i = 0; i < graph->v - 1; i++) {
+        int min_index = find_min_index(dist, graph->v);
+        dist[min_index].isVisited = true;
+        AdjListNode* tmp = graph->arr[min_index].head;
+        while (tmp) {
+            if (!dist[tmp->dest].isVisited && dist[min_index].weight != INT_MAX && dist[tmp->dest].weight > dist[min_index].weight + tmp->weight) {
+                dist[tmp->dest].weight = dist[min_index].weight + tmp->weight;
+                dist[tmp->dest].prev = &dist[min_index];
+                dist[min_index].order = min_index;
+            }
+            tmp = tmp->next;
+        }
+    }
+    print_dijkstra(dist, src, graph->v);
+}
+
+int main() {
+    clock_t t;
+    t = clock();
+    printf("\nTIMER STARTS\n");
+
+    // -----------------------------------------------------
+    Graph* graph = new_graph(V);
+    add_edge(graph, 0, 1, 6);
+    add_edge(graph, 0, 3, 1);
+    add_edge(graph, 1, 2, 5);
+    add_edge(graph, 1, 3, 2);
+    add_edge(graph, 1, 4, 2);
+    add_edge(graph, 2, 4, 5);
+    add_edge(graph, 3, 4, 1);
+
+    printGraph(graph);
+    printf("\n\n");
     dijkstra(graph, 0);
+    // -----------------------------------------------------
+
+    t = clock() - t;
+    double time_taken = ((double)t) / CLOCKS_PER_SEC;
+    printf("TIMER ENDS \n");
+    printf("THE PROGRAM TOOK \"%f\" SECONDS TO EXECUTE", time_taken);
 
     return 0;
 }

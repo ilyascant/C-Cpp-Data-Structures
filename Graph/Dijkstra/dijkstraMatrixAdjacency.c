@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define V 5
 
@@ -42,12 +43,20 @@ void dijkstra(int graph[V][V], int src) {
     }
 }
 
-int main(void) {  //    0, 1, 2, 3, 4
+int main(void) {
+    clock_t t;
+    t = clock();
+    printf("TIMER STARTS\n");
+
     int graph[V][V] = {{0, 6, 0, 1, 0},
                        {6, 0, 5, 2, 2},
                        {0, 5, 0, 0, 5},
                        {1, 2, 0, 0, 1},
                        {0, 2, 5, 1, 0}};
     dijkstra(graph, 0);
+    t = clock() - t;
+    double time_taken = ((double)t) / CLOCKS_PER_SEC;
+    printf("TIMER ENDS \n");
+    printf("THE PROGRAM TOOK %f SECONDS TO EXECUTE", time_taken);
     return 0;
 }
