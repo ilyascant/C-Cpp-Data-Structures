@@ -1,0 +1,15 @@
+CC=gcc
+CFLAGS=-I
+DEPS = hellomake.h
+
+output: completeTree.o queue.o
+	gcc -o output completeTree.o queue.o
+
+completeTree.o: completeTree.c
+	gcc -c completeTree.c
+
+queue.o: queue.c queue.h
+	gcc -c queue.c
+
+clean: 
+	rm *.o output
