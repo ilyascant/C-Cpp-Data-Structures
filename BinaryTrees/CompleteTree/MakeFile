@@ -1,3 +1,5 @@
+// First time of using MakeFile.
+
 CC=gcc
 CFLAGS=-I
 DEPS = hellomake.h
