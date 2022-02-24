@@ -1,168 +1,95 @@
-#include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 
-#define V 5
-
-typedef struct AdjListNode {
-    int dest;
-    int weight;
-    struct AdjListNode* next;
-
-} AdjListNode;
-
-typedef struct AdjList {
-    int order;
-    int weight;
-    bool isVisited;
-    struct AdjList* prev;
-    struct AdjListNode* head;
-} AdjList;
-
-typedef struct Graph {
-    int v;
-    struct AdjList* arr;
-
-} Graph;
-
-AdjListNode* new_node(int dest, int weight) {
-    AdjListNode* node = (AdjListNode*)malloc(sizeof(AdjListNode));
-    node->dest = dest;
-    node->weight = weight;
-    node->next = NULL;
-    return node;
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
 }
 
-Graph* new_graph(int v) {
-    Graph* graph = (Graph*)malloc(sizeof(Graph));
-    graph->v = v;
-    graph->arr = (AdjList*)malloc(v * sizeof(AdjList));
-
-    for (int i = 0; i < v; i++) {
-        graph->arr[i].head = NULL;
-    }
-
-    return graph;
-}
-
-void add_edge(Graph* graph, int src, int dest, int weight) {
-    AdjListNode* check = NULL;
-
-    AdjListNode* node = new_node(dest, weight);
-    if (graph->arr[src].head == NULL) {
-        graph->arr[src].head = node;
+void heapify(int arr[], int size, int i) {
+    if (size == 1) {
+        printf("This heap contains only one element");
     } else {
-        check = graph->arr[src].head;
-        while (check->next != NULL) {
-            check = check->next;
-        }
-        check->next = node;
-    }
+        int largest = i;
+        int l = 2 * i + 1;
+        int r = 2 * i + 2;
 
-    node = new_node(src, weight);
-    if (graph->arr[dest].head == NULL) {
-        graph->arr[dest].head = node;
+        if (l < size && arr[l] > arr[largest])
+            largest = l;
+
+        if (r < size && arr[r] > arr[largest])
+            largest = r;
+
+        if (largest != i) {
+            swap(&arr[i], &arr[largest]);
+            heapify(arr, size, largest);
+        }
+    }
+}
+
+void insert(int arr[], int num, int* size) {
+    if (*size == 0) {
+        arr[*size] = num;
+        (*size)++;
     } else {
-        check = graph->arr[dest].head;
-        while (check->next) {
-            check = check->next;
-        }
-        check->next = node;
-    }
-}
-int find_min_index(AdjList* dist, int v) {
-    int min = INT_MAX, min_index;
-    for (int i = 0; i < v; i++) {
-        if (!dist[i].isVisited && dist[i].weight <= min) {
-            min = dist[i].weight;
-            min_index = i;
+        arr[*size] = num;
+        (*size)++;
+        for (int i = (*size) / 2 - 1; i >= 0; i = i / 2) {
+            heapify(arr, *size, i);
+            if (i == 0) break;
         }
     }
-    return min_index;
 }
 
-void print_dijkstra(AdjList* dist, int src, int v) {
-    int i = 0;
-    while (i < v) {
-        printf("Shortest Path From Src ( %d ) To Dest ( %d ): ", src, i);
-        printf("%d\n", dist[i].weight);
-        AdjList* tmp = dist[i].prev;
-        printf("PATH: %d ", i);
-        while (tmp != NULL) {
-            printf("--> %d ", tmp->order);
-            tmp = tmp->prev;
-        }
-        printf("\n");
-        i++;
+void deleteNode(int arr[], int num, int* size) {
+    int i;
+    for (i = 0; i < *size; i++) {
+        if (num == arr[i])
+            break;
     }
+
+    swap(&arr[i], &arr[*size - 1]);
+    *size -= 1;
+    for (int i = (*size) / 2 - 1; i >= 0; i = i / 2) {
+        heapify(arr, *size, i);
+        if (i == 0) break;
+    }
+}
+
+void printArray(int arr[], int* size) {
+    for (int i = 0; i < *size; ++i)
+        printf("%d ", arr[i]);
+
     printf("\n");
 }
 
-void printGraph(Graph* graph) {
-    int v;
-    for (v = 0; v < graph->v; v++) {
-        AdjListNode* pCrawl = graph->arr[v].head;
-        printf("\nAdjacency list of vertex %d\nhead ", v);
-        while (pCrawl) {
-            printf("-> %d (%d) ", pCrawl->dest, pCrawl->weight);
-            pCrawl = pCrawl->next;
-        }
-    }
-}
+int main(void) {
+    // TIME
+    clock_t time = clock();
 
-void dijkstra(Graph* graph, int src) {
-    AdjList* dist = (AdjList*)malloc(graph->v * sizeof(AdjList));
+    int size = 0;
+    int arr[256];
+    insert(arr, 3, &size);
+    insert(arr, 4, &size);
+    insert(arr, 9, &size);
+    insert(arr, 5, &size);
+    insert(arr, 2, &size);
+    insert(arr, 12, &size);
+    insert(arr, 7, &size);
+    insert(arr, 21, &size);
 
-    for (int i = 0; i < graph->v; i++) {
-        dist[i] = graph->arr[i];
-        dist[i].weight = INT_MAX;
-        dist[i].isVisited = false;
-        dist[i].prev = NULL;
-    }
+    printf("%-30s", "Max-Heap arr: ");
+    printArray(arr, &size);
 
-    dist[src].weight = 0;
+    deleteNode(arr, 4, &size);
 
-    for (int i = 0; i < graph->v - 1; i++) {
-        int min_index = find_min_index(dist, graph->v);
-        dist[min_index].isVisited = true;
-        AdjListNode* tmp = graph->arr[min_index].head;
-        while (tmp) {
-            if (!dist[tmp->dest].isVisited && dist[min_index].weight != INT_MAX && dist[tmp->dest].weight > dist[min_index].weight + tmp->weight) {
-                dist[tmp->dest].weight = dist[min_index].weight + tmp->weight;
-                dist[tmp->dest].prev = &dist[min_index];
-                dist[min_index].order = min_index;
-            }
-            tmp = tmp->next;
-        }
-    }
-    print_dijkstra(dist, src, graph->v);
-}
+    printf("%-30s", "After deleting an element: ");
+    printArray(arr, &size);
 
-int main() {
-    clock_t t;
-    t = clock();
-    printf("\nTIMER STARTS\n");
-
-    // -----------------------------------------------------
-    Graph* graph = new_graph(V);
-    add_edge(graph, 0, 1, 6);
-    add_edge(graph, 0, 3, 1);
-    add_edge(graph, 1, 2, 5);
-    add_edge(graph, 1, 3, 2);
-    add_edge(graph, 1, 4, 2);
-    add_edge(graph, 2, 4, 5);
-    add_edge(graph, 3, 4, 1);
-
-    printGraph(graph);
-    printf("\n\n");
-    dijkstra(graph, 0);
-    // -----------------------------------------------------
-
-    t = clock() - t;
-    double time_taken = ((double)t) / CLOCKS_PER_SEC;
-    printf("TIMER ENDS \n");
-    printf("THE PROGRAM TOOK \"%f\" SECONDS TO EXECUTE", time_taken);
+    // TIME
+    double timePassed = (double)(clock() - time) / CLOCKS_PER_SEC;
+    printf("%f", timePassed);
 
     return 0;
 }
