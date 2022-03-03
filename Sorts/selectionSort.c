@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-// O(n)
+// O(n^2)
 
 void swap(int *x, int *y)
 {
