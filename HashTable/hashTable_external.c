@@ -55,6 +55,7 @@ person* hash_table_delete(char* name) {
     person* tmp = hash_table[index];
     person* prev = NULL;
     while (tmp != NULL && strncmp(tmp->name, name, MAX_SIZE) != 0) {
+        prev = tmp;
         tmp = tmp->next;
     }
     if (tmp == NULL) return NULL;
